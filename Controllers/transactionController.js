@@ -5,8 +5,6 @@ const qrPaymentModel = require("../Models/QrPayment.js");
 const dotenv = require("dotenv");
 dotenv.config();
 
-
-
 const reachPaymentTest = async (req, res) => {
   try {
     res.json({
@@ -18,19 +16,16 @@ const reachPaymentTest = async (req, res) => {
   }
 };
 
-
-
 const saveQrPaymentDetials = async (req, res) => {
   console.log(req.body);
-  const { mgoodId, phoneNumber, transactionId } = req.body;
+  const { phoneNumber, transactionId } = req.body;
 
   // Check if all required fields are present
-  if (!mgoodId || !phoneNumber || !transactionId) {
+  if (!phoneNumber || !transactionId) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   const qrPayment = new qrPaymentModel({
-    mgoodId: mgoodId,
     phoneNumber: phoneNumber,
     transactionId: transactionId,
   });
@@ -48,9 +43,7 @@ const saveQrPaymentDetials = async (req, res) => {
   }
 };
 
-
 module.exports = {
   reachPaymentTest,
-  
   saveQrPaymentDetials,
 };
