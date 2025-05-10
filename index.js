@@ -1,0 +1,160 @@
+const express = require("express");
+require("dotenv").config();
+const mongoose = require("mongoose");
+const doctorRoutes = require("./Routes/doctors.js"); // Ensure these paths are correct
+const paymentRoutes = require("./Routes/payment.js");
+const app = express();
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const { Server } = require("socket.io");
+const prescriptionRoutes = require("./Routes/prescription.js");
+
+// Middleware setup
+app.use(cors({
+  origin: [ // Whitelist your frontend origins
+    "http://localhost:3000", // Next.js dev
+    "http://localhost:3001"
+  ],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+app.options("*", cors());
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+
+const activeAppointments = new Map(); // Key: appointmentId (patient's phone), Value: appointment object
+
+// Routes
+app.use("/api", doctorRoutes);
+
+app.use("/payment", paymentRoutes);
+app.use("/prescription", prescriptionRoutes);
+
+// Webhook configuration
+const apiCredentials = {
+  apiId: process.env.NEXT_PUBLIC_WEBHOOK_API_ID, // Assuming these are defined in your .env
+  apiSecret: process.env.NEXT_PUBLIC_WEBHOOK_API_SECRET,
+};
+
+app.post("/webhook/tc-update", (req, res) => {
+  const receivedApiId = req.headers["mgood-api-id"];
+  const receivedApiSecret = req.headers["mgood-api-secret"];
+
+  if (!receivedApiId || !receivedApiSecret) {
+    return res.status(401).send({ message: "Missing API ID or Secret" });
+  }
+  if (receivedApiId !== apiCredentials.apiId || receivedApiSecret !== apiCredentials.apiSecret) {
+    return res.status(403).send({ message: "Invalid API credentials" });
+  }
+
+  const { triggered_action, name, custom_order_id } = req.body;
+  console.log("Webhook Received:", req.body);
+  io.emit("update", { triggered_action, name, custom_order_id });
+  res.status(200).send({ message: "Webhook processed successfully" });
+});
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB Connection Error:", err.message, err.stack));
+
+const server = app.listen(process.env.PORT || 8000, () => {
+  console.log(`Server is running on port ${process.env.PORT || 8000}`);
+});
+
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:3000", "http://localhost:3001",
+    ],
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+});
+
+// Global cleanup for expired PENDING appointments
+setInterval(() => {
+  const now = Date.now();
+  activeAppointments.forEach((appointment, id) => {
+    if (appointment.status === "pending" && (now - appointment.createdAt > 300000)) { // 5 minutes
+      activeAppointments.delete(id);
+      io.emit("appointment-expired", { appointmentId: id, message: "Appointment expired due to no action." });
+      console.log(`Appointment ${id} expired and removed from active list.`);
+    }
+  });
+}, 60000); // Check every minute
+
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("appointment-booked", (appointmentBooking) => {
+    const patientData = appointmentBooking.data;
+    console.log("Server: 'appointment-booked' received with data:", patientData);
+
+    const appointmentId = patientData.phone;
+
+    if (!appointmentId) {
+        console.error("Server: Cannot book appointment, patient phone number is missing from data:", patientData);
+        socket.emit("booking-error", { message: "Patient phone number is required." });
+        return;
+    }
+
+    const existingAppointment = activeAppointments.get(appointmentId);
+
+    if (!existingAppointment || existingAppointment.status !== 'pending') {
+        const newAppointment = {
+            ...patientData,
+            id: appointmentId,
+            status: "pending",
+            createdAt: Date.now(),
+            // acceptedBy: undefined, // Ensure this is not set for new pending
+        };
+        activeAppointments.set(appointmentId, newAppointment);
+        console.log("Server: Stored/Updated appointment to PENDING:", newAppointment);
+        io.emit("notify-admin", { data: newAppointment });
+        console.log("Server: Emitted 'notify-admin' for PENDING state with data:", { data: newAppointment });
+    } else {
+        console.log(`Server: Appointment ${appointmentId} is already pending. Not re-emitting 'notify-admin'.`);
+    }
+  });
+
+  socket.on("update-appointment-status", async ({ appointmentId, status, userId }) => {
+    console.log(`Server: 'update-appointment-status' for ${appointmentId} to ${status} by ${userId}`);
+    const appointment = activeAppointments.get(appointmentId);
+
+    if (!appointment) {
+      console.log(`Server: Appointment ${appointmentId} not found.`);
+      socket.emit("appointment-error", { message: "Appointment not found", appointmentId });
+      return;
+    }
+
+    if (appointment.status !== "pending" && (status === "accepted" || status === "declined")) {
+      console.log(`Server: Appointment ${appointmentId} is no longer pending (current: ${appointment.status}). Update to '${status}' rejected.`);
+      socket.emit("appointment-error", {
+        message: `Appointment is already ${appointment.status}.`,
+        appointmentId,
+        currentStatus: appointment.status,
+        acceptedBy: appointment.acceptedBy
+      });
+      return;
+    }
+
+    appointment.status = status;
+    appointment.acceptedBy = userId;
+    appointment.updatedAt = Date.now();
+    activeAppointments.set(appointmentId, appointment);
+
+    console.log(`Server: Appointment ${appointmentId} status updated to ${status}. AcceptedBy: ${userId}.`);
+    io.emit("appointment-status-updated", {
+      appointmentId,
+      status,
+      userId,
+      appointmentData: appointment
+    });
+    console.log("Server: Emitted 'appointment-status-updated' for", appointmentId);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
