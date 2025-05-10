@@ -93,39 +93,17 @@ const io = new Server(server, {
   }
 });
 
-const APPOINTMENT_EXPIRY_DURATION_MS = 30 * 1000; // 30 seconds in milliseconds
 
 setInterval(() => {
   const now = Date.now();
   activeAppointments.forEach((appointment, id) => {
-    // Check if it's pending and if createdAt exists and is a number
-    if (appointment.status === "pending" && typeof appointment.createdAt === 'number') {
-      if ((now - appointment.createdAt > APPOINTMENT_EXPIRY_DURATION_MS)) {
-        activeAppointments.delete(id);
-        io.emit("appointment-expired", { appointmentId: id, message: "Appointment expired due to no action." });
-        console.log(`Server: Appointment ${id} expired (after ${APPOINTMENT_EXPIRY_DURATION_MS / 1000}s) and removed.`);
-      }
-    } else if (appointment.status === "pending" && !appointment.createdAt) {
-        // Optional: Handle cases where createdAt might be missing for some reason
-        console.warn(`Server: Pending appointment ${id} is missing createdAt, cannot check expiry.`);
-        // Potentially delete it or set a default createdAt to eventually expire it
-        // activeAppointments.delete(id);
-        // io.emit("appointment-expired", { appointmentId: id, message: "Appointment data incomplete, removed." });
+    if (appointment.status === "pending" && (now - appointment.createdAt > 300000)) { // 5 minutes
+      activeAppointments.delete(id);
+      io.emit("appointment-expired", { appointmentId: id, message: "Appointment expired due to no action." });
+      console.log(`Server: Appointment ${id} expired and removed from active list.`);
     }
   });
-}, 10000);
-
-
-// setInterval(() => {
-//   const now = Date.now();
-//   activeAppointments.forEach((appointment, id) => {
-//     if (appointment.status === "pending" && (now - appointment.createdAt > 300000)) { // 5 minutes
-//       activeAppointments.delete(id);
-//       io.emit("appointment-expired", { appointmentId: id, message: "Appointment expired due to no action." });
-//       console.log(`Server: Appointment ${id} expired and removed from active list.`);
-//     }
-//   });
-// }, 60000);
+}, 60000);
 
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
