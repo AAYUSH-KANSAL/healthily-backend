@@ -11,16 +11,18 @@ const prescriptionRoutes = require("./Routes/prescription.js");
 const adminRoutes = require("./Routes/admin.js");
 
 
-app.use(cors({
-  origin: [ 
-    "http://localhost:3000", 
-    "http://localhost:3001",
-    "https://healthily-backend.vercel.app",
-    "https://healthily-backend-git-main-dhruvgangals-projects.vercel.app"  
-  ],
-  methods: ["GET", "POST"],
-  credentials: true
-}));
+app.use(cors(
+//   {
+//   origin: [ 
+//     "http://localhost:3000", 
+//     "http://localhost:3001",
+//     "https://healthily-backend.vercel.app",
+//     "https://healthily-backend-git-main-dhruvgangals-projects.vercel.app"  
+//   ],
+//   methods: ["GET", "POST"],
+//   credentials: true
+// }
+));
 app.options("*", cors());
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -65,19 +67,30 @@ const server = app.listen(process.env.PORT || 8000, () => {
   console.log(`Server is running on port ${process.env.PORT || 8000}`);
 });
 
+// const io = new Server(server, {
+//   cors: {
+//     origin: [
+//       "http://localhost:3000", 
+//       "http://localhost:3001",
+//     "https://healthily-backend.vercel.app",
+//     "https://healthily-backend-git-main-dhruvgangals-projects.vercel.app"
+      
+//     ],
+//     methods: ["GET", "POST"],
+//     credentials: true
+//   },
+// });
+
+
+
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:3000", 
-      "http://localhost:3001",
-    "https://healthily-backend.vercel.app",
-    "https://healthily-backend-git-main-dhruvgangals-projects.vercel.app"
-      
-    ],
+    origin: "*", // Allow all origins
     methods: ["GET", "POST"],
-    credentials: true
-  },
+    credentials: false // Must be false if origin is "*"
+  }
 });
+
 
 
 setInterval(() => {
