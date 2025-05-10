@@ -5,10 +5,7 @@ const QrPaymentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  mgoodId: {
-    type: String,
-    required: true,
-  },
+  
   phoneNumber: {
     type: String,
     required: true,
