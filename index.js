@@ -218,7 +218,7 @@ const baseAllowedOrigins = [
   process.env.FRONTEND_URL_1, // http://localhost:3000
   process.env.FRONTEND_URL_2, // http://localhost:3001
   process.env.PRODUCTION_BACKEND_URL, // Your main Vercel backend URL (can also be frontend URL if they are separate)
-  process.env.NEXT_PUBLIC_FRONTEND_URL // Your deployed frontend URL
+  // process.env.NEXT_PUBLIC_FRONTEND_URL // Your deployed frontend URL
 ].filter(Boolean); // Remove any undefined entries if env vars are not set
 
 app.use(cors({
