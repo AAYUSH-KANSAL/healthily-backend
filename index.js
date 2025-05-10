@@ -8,6 +8,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const { Server } = require("socket.io");
 const prescriptionRoutes = require("./Routes/prescription.js");
+const adminRoutes = require("./Routes/admin.js");
 
 // Middleware setup
 app.use(cors({
@@ -27,7 +28,7 @@ const activeAppointments = new Map(); // Key: appointmentId (patient's phone), V
 
 // Routes
 app.use("/api", doctorRoutes);
-
+app.use("/admin", adminRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/prescription", prescriptionRoutes);
 
@@ -158,3 +159,5 @@ io.on("connection", (socket) => {
     console.log("User disconnected:", socket.id);
   });
 });
+
+
