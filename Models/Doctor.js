@@ -7,7 +7,7 @@ const doctorSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    // required: true,
+    
   },
   specialization: {
     type: String,
@@ -79,7 +79,7 @@ const doctorSchema = new mongoose.Schema({
   },
   uploadFile: {
     type: String,
-    // required: true,
+    
   },
   accessRole: {
     type: String,

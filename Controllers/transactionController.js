@@ -20,7 +20,7 @@ const saveQrPaymentDetials = async (req, res) => {
   console.log(req.body);
   const { phoneNumber, transactionId } = req.body;
 
-  // Check if all required fields are present
+
   if (!phoneNumber || !transactionId) {
     return res.status(400).json({ message: "All fields are required" });
   }
@@ -31,13 +31,13 @@ const saveQrPaymentDetials = async (req, res) => {
   });
 
   try {
-    // Save the payment details to the database
+    
     const result = await qrPayment.save();
     return res
       .status(200)
       .json({ message: "Payment details saved successfully" });
   } catch (err) {
-    // Handle any errors that occur during the save
+    
     console.error("Error during saving payment details:", err);
     return res.status(500).json({ message: "Internal Server Error!" });
   }

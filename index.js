@@ -10,11 +10,11 @@ const { Server } = require("socket.io");
 const prescriptionRoutes = require("./Routes/prescription.js");
 const adminRoutes = require("./Routes/admin.js");
 
-// Middleware setup
+
 app.use(cors({
-  origin: [ // Whitelist your frontend origins
-    "http://localhost:3000", // Next.js dev
-    "http://localhost:3001"
+  origin: [ 
+    "http://localhost:3000", 
+    "http://localhost:3001"  
   ],
   methods: ["GET", "POST"],
   credentials: true
@@ -24,17 +24,17 @@ app.options("*", cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
-const activeAppointments = new Map(); // Key: appointmentId (patient's phone), Value: appointment object
+const activeAppointments = new Map(); 
 
-// Routes
+
 app.use("/api", doctorRoutes);
 app.use("/admin", adminRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/prescription", prescriptionRoutes);
 
-// Webhook configuration
+
 const apiCredentials = {
-  apiId: process.env.NEXT_PUBLIC_WEBHOOK_API_ID, // Assuming these are defined in your .env
+  apiId: process.env.NEXT_PUBLIC_WEBHOOK_API_ID,
   apiSecret: process.env.NEXT_PUBLIC_WEBHOOK_API_SECRET,
 };
 
@@ -73,20 +73,37 @@ const io = new Server(server, {
   },
 });
 
-// Global cleanup for expired PENDING appointments
+
 setInterval(() => {
   const now = Date.now();
   activeAppointments.forEach((appointment, id) => {
     if (appointment.status === "pending" && (now - appointment.createdAt > 300000)) { // 5 minutes
       activeAppointments.delete(id);
       io.emit("appointment-expired", { appointmentId: id, message: "Appointment expired due to no action." });
-      console.log(`Appointment ${id} expired and removed from active list.`);
+      console.log(`Server: Appointment ${id} expired and removed from active list.`);
     }
   });
-}, 60000); // Check every minute
+}, 60000);
 
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
+
+ 
+  socket.on("request-initial-pending-appointments", () => {
+    const pendingAppointmentsList = [];
+    activeAppointments.forEach(app => {
+      if (app.status === "pending") {
+        pendingAppointmentsList.push(app); 
+      }
+    });
+    if (pendingAppointmentsList.length > 0) {
+      socket.emit("initial-pending-appointments", pendingAppointmentsList);
+      console.log(`Server: Sent ${pendingAppointmentsList.length} initial pending appointments to ${socket.id}`);
+    } else {
+      socket.emit("initial-pending-appointments", []); 
+      console.log(`Server: No initial pending appointments to send to ${socket.id}`);
+    }
+  });
 
   socket.on("appointment-booked", (appointmentBooking) => {
     const patientData = appointmentBooking.data;
@@ -102,21 +119,26 @@ io.on("connection", (socket) => {
 
     const existingAppointment = activeAppointments.get(appointmentId);
 
-    if (!existingAppointment || existingAppointment.status !== 'pending') {
-        const newAppointment = {
-            ...patientData,
-            id: appointmentId,
-            status: "pending",
-            createdAt: Date.now(),
-            // acceptedBy: undefined, // Ensure this is not set for new pending
-        };
-        activeAppointments.set(appointmentId, newAppointment);
-        console.log("Server: Stored/Updated appointment to PENDING:", newAppointment);
-        io.emit("notify-admin", { data: newAppointment });
-        console.log("Server: Emitted 'notify-admin' for PENDING state with data:", { data: newAppointment });
-    } else {
-        console.log(`Server: Appointment ${appointmentId} is already pending. Not re-emitting 'notify-admin'.`);
-    }
+    
+    const newOrUpdatedPendingAppointment = {
+        ...patientData,
+        id: appointmentId, 
+        status: "pending",
+        
+        createdAt: (existingAppointment && existingAppointment.status === 'pending')
+                     ? existingAppointment.createdAt
+                     : Date.now(),
+        updatedAt: Date.now(), 
+    };
+    
+    delete newOrUpdatedPendingAppointment.acceptedBy;
+
+    activeAppointments.set(appointmentId, newOrUpdatedPendingAppointment);
+    console.log("Server: Stored/Updated appointment to PENDING:", newOrUpdatedPendingAppointment);
+
+
+    io.emit("notify-admin", { data: newOrUpdatedPendingAppointment });
+    console.log("Server: Emitted 'notify-admin' for PENDING state with data:", { data: newOrUpdatedPendingAppointment });
   });
 
   socket.on("update-appointment-status", async ({ appointmentId, status, userId }) => {
@@ -129,19 +151,22 @@ io.on("connection", (socket) => {
       return;
     }
 
+   
     if (appointment.status !== "pending" && (status === "accepted" || status === "declined")) {
       console.log(`Server: Appointment ${appointmentId} is no longer pending (current: ${appointment.status}). Update to '${status}' rejected.`);
       socket.emit("appointment-error", {
         message: `Appointment is already ${appointment.status}.`,
         appointmentId,
         currentStatus: appointment.status,
-        acceptedBy: appointment.acceptedBy
+        acceptedBy: appointment.acceptedBy 
       });
       return;
     }
 
     appointment.status = status;
-    appointment.acceptedBy = userId;
+    if (status === "accepted" || status === "declined") {
+        appointment.acceptedBy = userId; 
+    }
     appointment.updatedAt = Date.now();
     activeAppointments.set(appointmentId, appointment);
 
@@ -149,8 +174,8 @@ io.on("connection", (socket) => {
     io.emit("appointment-status-updated", {
       appointmentId,
       status,
-      userId,
-      appointmentData: appointment
+      userId, 
+      appointmentData: appointment 
     });
     console.log("Server: Emitted 'appointment-status-updated' for", appointmentId);
   });
@@ -159,5 +184,3 @@ io.on("connection", (socket) => {
     console.log("User disconnected:", socket.id);
   });
 });
-
-

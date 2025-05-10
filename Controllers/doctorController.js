@@ -111,36 +111,7 @@ const getDoctorByValue = async (req, res) => {
   }
 };
 
-// const updateIsBoarded = async (req, res) => {
-//   const { mgoodId } = req.params; // Use mgoodId from route params
 
-//   // Validate the provided mgoodId
-//   if (!mgoodId) {
-//     return res.status(400).send("MGood ID is required.");
-//   }
-
-//   try {
-//     // Find the doctor by mgoodId and update isBoarded to true
-//     const updatedDoctor = await doctorModel.findOneAndUpdate(
-//       { mgoodId }, // Find the doctor by mgoodId
-//       { isBoarded: true }, // Set isBoarded to true
-//       { new: true } // Return the updated document
-//     );
-
-//     // If no doctor is found with the provided mgoodId
-//     if (!updatedDoctor) {
-//       return res
-//         .status(404)
-//         .send("No doctor found with the provided MGood ID.");
-//     }
-
-//     // Respond with the updated doctor document
-//     res.status(200).json(updatedDoctor);
-//   } catch (error) {
-//     console.error("Error updating doctor:", error);
-//     res.status(500).send("An error occurred while updating the doctor.");
-//   }
-// };
 
 module.exports = {
   getAllDoctors,
