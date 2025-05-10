@@ -10,7 +10,6 @@ const { Server } = require("socket.io");
 const prescriptionRoutes = require("./Routes/prescription.js");
 const adminRoutes = require("./Routes/admin.js");
 
-
 app.use(cors(
 //   {
 //   origin: [ 
@@ -24,7 +23,6 @@ app.use(cors(
 // }
 ));
 app.options("*", cors());
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -41,6 +39,10 @@ const apiCredentials = {
   apiId: process.env.NEXT_PUBLIC_WEBHOOK_API_ID,
   apiSecret: process.env.NEXT_PUBLIC_WEBHOOK_API_SECRET,
 };
+
+app.get("/", (req, res) => {
+  res.send("Server is alive");
+});
 
 app.post("/webhook/tc-update", (req, res) => {
   const receivedApiId = req.headers["mgood-api-id"];
@@ -96,7 +98,7 @@ const io = new Server(server, {
 setInterval(() => {
   const now = Date.now();
   activeAppointments.forEach((appointment, id) => {
-    if (appointment.status === "pending" && (now - appointment.createdAt > 300000)) { // 5 minutes
+    if (appointment.status === "pending" && (now - appointment.createdAt > 3000)) { // 5 minutes
       activeAppointments.delete(id);
       io.emit("appointment-expired", { appointmentId: id, message: "Appointment expired due to no action." });
       console.log(`Server: Appointment ${id} expired and removed from active list.`);
