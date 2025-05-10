@@ -562,7 +562,7 @@ const prescriptionRoutes = require("./Routes/prescription.js");
 const adminRoutes = require("./Routes/admin.js");
 
 // Model
-const Appointment = require('./Models/Appointment'); // Ensure this path is correct
+const Appointment = require('./Models/Appointments.js'); // Ensure this path is correct
 
 const app = express();
 
