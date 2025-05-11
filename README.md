@@ -1,10 +1,27 @@
-# Healthily Backend
+# Healthily Backend (Part of Project Healthily by Team MIDROUTE)
 
-This is the backend server for the Healthily platform, an application designed to connect patients with healthcare professionals. It manages data for doctors, patients, appointments, prescriptions, and teleconsultation bookings, providing APIs for the frontend application and handling real-time communication via Socket.IO.
+This is the backend server for the Healthily platform, an application designed to connect patients with healthcare professionals. It is a core component of the **Healthily** project, developed by **Team MIDROUTE**. The backend manages data for doctors, patients, appointments, prescriptions, and teleconsultation bookings, providing APIs for the frontend application and handling real-time communication via Socket.IO.
 
-## Overview
+## Project Overview: Healthily by Team MIDROUTE
+
+The **Healthily** project consists of multiple components working together:
+
+*   **Patient Frontend:** [https://github.com/DHRUVGANGAL/Healthily-User](https://github.com/DHRUVGANGAL/Healthily-User)
+    *   **Deployed Patient Frontend:** [https://healthily-user.vercel.app](https://healthily-user.vercel.app)
+*   **Doctor Dashboard Frontend:** [https://github.com/DHRUVGANGAL/Healthily-dashboard](https://github.com/DHRUVGANGAL/Healthily-dashboard)
+    *   **Deployed Doctor Dashboard:** [https://healthily-dashboard.onrender.com](https://healthily-dashboard.onrender.com)
+*   **This Repository (Backend):** [https://github.com/DHRUVGANGAL/healthily-backend](https://github.com/DHRUVGANGAL/healthily-backend)
+    *   **Deployed Backend:** [https://healthily-backend-8s57.onrender.com](https://healthily-backend-8s57.onrender.com)
+
+**Supporting Materials:**
+*   **Documentation:** [https://drive.google.com/drive/folders/1LZsuSrA5w55e9CKWmdkgQ4a1BVCk4VJj?usp=drive_link](https://drive.google.com/drive/folders/1LZsuSrA5w55e9CKWmdkgQ4a1BVCk4VJj?usp=drive_link)
+*   **Demo Video:** [https://drive.google.com/drive/folders/1dyNGo_04Wa5TQCKDgw-a0MFSUKqMZUzC?usp=drive_link](https://drive.google.com/drive/folders/1dyNGo_04Wa5TQCKDgw-a0MFSUKqMZUzC?usp=drive_link)
+*   **Sample Generated Prescription:** [https://drive.google.com/drive/folders/1coGx7zimmeHeIKUJMlIpZtuhyJ0XZfdm?usp=drive_link](https://drive.google.com/drive/folders/1coGx7zimmeHeIKUJMlIpZtuhyJ0XZfdm?usp=drive_link)
+
+## Healthily Backend Overview
 
 The Healthily Backend is a Node.js application built with Express.js and MongoDB (using Mongoose). It serves as the central hub for all data operations and real-time interactions required by the Healthily user-facing applications (both patient and potentially admin/doctor dashboards).
+
 
 ## Key Features
 
