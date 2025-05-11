@@ -13,15 +13,15 @@ const getAllDoctors = async (req, res) => {
   }
 };
 
-const getMgoodIdByEmail = async (req, res) => {
-  const { email } = req.body;
-  const doctor = await doctorModel.findOne({ email });
-  if (doctor) {
-    res.status(200).json({ mgoodId: doctor.mgoodId });
-  } else {
-    res.status(404).json({ mgoodId: null });
-  }
-};
+// const getMgoodIdByEmail = async (req, res) => {
+//   const { email } = req.body;
+//   const doctor = await doctorModel.findOne({ email });
+//   if (doctor) {
+//     res.status(200).json({ mgoodId: doctor.mgoodId });
+//   } else {
+//     res.status(404).json({ mgoodId: null });
+//   }
+// };
 
 const getDoctorById = async (req, res) => {
   const { id } = req.params;
@@ -123,6 +123,6 @@ module.exports = {
   saveAppointment,
   savePatientDetails,
   getDoctorByValue,
-  getMgoodIdByEmail,
+  // getMgoodIdByEmail,
   
 };

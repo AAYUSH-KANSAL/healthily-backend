@@ -89,7 +89,6 @@ The server exposes the following main groups of API endpoints:
 *   **`POST /api/patient`**: Save patient details (typically used during TC booking).
 *   **`PATCH /api/:id`**: Update doctor details.
 *   **`POST /api/checkRole`**: Check if a doctor exists by email.
-*   **`POST /api/getMgoodId`**: Get MGood ID by doctor's email.
 
 ### Admin/Appointment APIs (`/admin`)
 

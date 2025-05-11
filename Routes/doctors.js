@@ -10,7 +10,7 @@ const {
   saveAppointment,
   savePatientDetails,
   getDoctorByValue,
-  getMgoodIdByEmail,
+  // getMgoodIdByEmail,
   
 } = require("../Controllers/doctorController.js");
 
@@ -23,7 +23,7 @@ router.post("/appointment", saveAppointment);
 router.post("/patient", savePatientDetails);
 router.patch("/:id", updateDoctor);
 router.post("/checkRole", getDoctorByValue);
-router.post("/getMgoodId", getMgoodIdByEmail);
+// router.post("/getMgoodId", getMgoodIdByEmail);
 
 
 module.exports = router;
